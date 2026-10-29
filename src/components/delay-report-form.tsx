@@ -3,10 +3,20 @@
 import Link from 'next/link'
 import { startTransition, useActionState, useRef, useState } from 'react'
 import { submitDelay, type DelayFormState } from '@/lib/actions/delays'
+import type { NotificationSummary } from '@/lib/email/notify-delay'
 
 const formatDate = (value: string) => new Intl.DateTimeFormat('fr-FR', {
   weekday: 'short', day: '2-digit', month: 'short',
 }).format(new Date(`${value}T12:00:00`))
+
+function notificationText(summary: NotificationSummary) {
+  if (summary.skipped) return `Emails non envoyés : ${summary.skipped}.`
+  if (summary.sent === 0 && summary.failed === 0) return 'Aucun email à envoyer.'
+  const parts = []
+  if (summary.sent > 0) parts.push(`${summary.sent} email(s) envoyé(s)`)
+  if (summary.failed > 0) parts.push(`${summary.failed} échec(s) d’envoi`)
+  return `${parts.join(', ')}.`
+}
 
 // Réduit les photos de téléphone (souvent > 5 Mo) avant l’envoi. En cas d’échec, la photo d’origine est envoyée.
 async function compressImage(file: File): Promise<File> {
@@ -67,6 +77,7 @@ export function DelayReportForm({ projectId, taskId }: { projectId: string; task
 
     {state.error && <p className="alert alert-error" role="alert">{state.error}</p>}
     {state.success && <p className="alert alert-success" role="status">{state.success}</p>}
+    {state.notifications && <p className="muted" role="status">{notificationText(state.notifications)}</p>}
 
     {preview && !stale && <section className="card card-pad" aria-live="polite">
       <h2>Aperçu avant / après</h2>

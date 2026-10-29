@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { notifyDelay, type NotificationSummary } from '@/lib/email/notify-delay'
 import { MAX_DELAY_DAYS, previewDelay, type DelayPreview } from '@/lib/planning/delay-preview'
 import { PlanningError, scheduleProject } from '@/lib/planning/engine'
 import { calendarForRange } from '@/lib/planning/french-calendar'
@@ -25,6 +26,7 @@ export interface DelayFormState {
   error?: string
   success?: string
   preview?: DelayPreview
+  notifications?: NotificationSummary
 }
 
 const delaySchema = z.object({
@@ -178,5 +180,22 @@ export async function submitDelay(_: DelayFormState, formData: FormData): Promis
 
   revalidatePath(`/chantiers/${projectId}`)
   revalidatePath('/chantiers')
-  return { preview, success: 'Retard enregistré, planning recalculé.' }
+
+  let notifications: NotificationSummary
+  try {
+    notifications = await notifyDelay({
+      admin,
+      projectId,
+      eventId: event.id,
+      taskName: context.inputs.find((task) => task.id === taskId)?.name ?? 'Tâche',
+      reporterId: userId,
+      delayDays: jours,
+      motif,
+      preview,
+    })
+  } catch (error) {
+    console.error('[email] notification impossible', error instanceof Error ? error.message : error)
+    notifications = { sent: 0, failed: 0, skipped: 'erreur inattendue' }
+  }
+  return { preview, success: 'Retard enregistré, planning recalculé.', notifications }
 }
