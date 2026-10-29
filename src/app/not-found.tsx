@@ -1,0 +1,2 @@
+import Link from 'next/link'
+export default function NotFound() { return <main className="auth-layout"><section className="auth-card"><p className="eyebrow">404</p><h1>Page introuvable</h1><p className="muted" style={{margin:'1rem 0'}}>Ce chantier n’existe pas ou vous n’y avez pas accès.</p><Link className="button button-primary button-wide" href="/chantiers">Retour aux chantiers</Link></section></main> }

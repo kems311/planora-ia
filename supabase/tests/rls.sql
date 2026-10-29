@@ -1,0 +1,10 @@
+begin;
+select plan(6);
+select has_table('public', 'projects', 'projects existe');
+select has_table('public', 'tasks', 'tasks existe');
+select has_function('public', 'is_project_member', array['uuid'], 'helper membre existe');
+select has_function('public', 'get_shared_project', array['text'], 'RPC lien client existe');
+select policies_are('public', 'projects', array['projects_member_select','projects_create','projects_owner_update','projects_owner_delete']);
+select policies_are('public', 'tasks', array['tasks_member_select','tasks_owner_insert','tasks_owner_update','tasks_assignee_update','tasks_owner_delete']);
+select * from finish();
+rollback;
