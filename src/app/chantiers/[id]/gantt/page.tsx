@@ -17,6 +17,7 @@ interface TaskRow {
 
 async function GanttContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound()
   const supabase = await createGanttServerClient()
   const { data: claims } = await supabase.auth.getClaims()
   if (!claims?.claims?.sub) redirect('/connexion')
