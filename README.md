@@ -2,6 +2,8 @@
 
 *Copilote de planning de chantier pour artisans et petites entreprises du bâtiment.*
 
+Demo video (80 s): https://youtu.be/vxVD9ka1xEA
+
 Planora-IA is a mobile-first web app for small construction businesses. When a delay is reported on site, the schedule is recomputed automatically with the critical path method, and the people concerned are notified with the old and new dates.
 
 > **Status: working MVP, built as a personal project.** The core loop (plan, report a delay, preview the impact, recompute, notify) works end to end. Some screens are still missing, see the [roadmap](#roadmap).
@@ -10,11 +12,12 @@ Planora-IA is a mobile-first web app for small construction businesses. When a d
 
 - **Authentication**: e-mail and password (Supabase Auth, server-side sessions).
 - **Projects and tasks**: finish-to-start dependencies, milestones (duration 0) and a responsible person per task.
+- **Project settings**: edit a project (name, client, start date, with automatic recomputation) and delete it after typing its name.
 - **Cycle protection**: a dependency that would create a loop is refused, both in the TypeScript engine and by a PostgreSQL trigger.
 - **Scheduling engine** (isolated, unit-tested module): topological sort, forward pass (earliest dates), backward pass (latest dates), total float and critical path. Weekends and French public holidays are excluded.
 - **Delay reporting**: +N working days on a task, with a reason and an optional photo. Before anything is saved, the app shows a **before / after preview**: the tasks whose dates change and the new project end date.
 - **Notifications**: after a confirmed delay, e-mails (via Resend) list the old and new dates for the project owner and for each person whose task moves.
-- **Gantt view**: bars, dependency arrows, milestones, critical tasks in red, week / month zoom.
+- **Gantt view**: bars, dependency arrows, milestones, critical tasks in red, week / month zoom, reachable from the project page tabs.
 - **Security**: Row Level Security on every table, a private photo bucket (images only, 5 MB) and a service-role key that is only used in server code, after explicit permission checks.
 
 ## Worked example
@@ -81,6 +84,6 @@ npm run build
 
 - "Today's tasks" mobile view with progress / delay / blocked buttons.
 - Read-only client page through a private, revocable link.
-- Activity tab with photos, and the Gantt tab wired into the project page.
+- Activity tab with photos.
 - CSV import of tasks.
 - Merge the two scheduling modules (`planning` and `gantt-planning`) into one.
