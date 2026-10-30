@@ -19,7 +19,7 @@ type MemberOption = { user_id: string; profiles: { nom_complet: string | null; e
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   await connection()
   const { id } = await params
-  const { supabase } = await ensureAuthenticated()
+  const { supabase, userId } = await ensureAuthenticated()
   const [{ data: project }, { data: tasks }, { data: dependencies }, { data: members }] = await Promise.all([
     supabase.from('projects').select('*').eq('id', id).single(),
     supabase.from('tasks').select('*, profiles:responsable_id(nom_complet,email)').eq('project_id', id).order('created_at'),
@@ -37,13 +37,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   }
   const canDelay = (task: Task) => task.duree_jours > 0 && task.statut !== 'termine'
   const delayHref = (taskId: string) => `/chantiers/${id}/retard/${taskId}`
+  const isOwner = (members ?? []).some((member) => member.user_id === userId && member.role === 'owner')
   const memberOptions = (members ?? []).map((member) => ({
     user_id: member.user_id,
     profiles: Array.isArray(member.profiles) ? member.profiles[0] ?? null : member.profiles,
   })) as MemberOption[]
 
   return <>
-    <div className="page-head"><div><Link className="muted" href="/chantiers"><ArrowLeft size={18}/>Chantiers</Link><p className="eyebrow">{typedProject.client_nom || 'Chantier'}</p><h1>{typedProject.nom}</h1><p className="muted">Fin prévue : <strong>{displayDate(typedProject.date_fin_prevue)}</strong></p></div></div>
+    <div className="page-head"><div><Link className="muted" href="/chantiers"><ArrowLeft size={18}/>Chantiers</Link><p className="eyebrow">{typedProject.client_nom || 'Chantier'}</p><h1>{typedProject.nom}</h1><p className="muted">Fin prévue : <strong>{displayDate(typedProject.date_fin_prevue)}</strong></p></div>{isOwner && <Link className="button button-secondary" href={`/chantiers/${id}/modifier`}>Modifier le chantier</Link>}</div>
     <nav className="tabs" aria-label="Sections du chantier"><span className="tab tab-active"><ListChecks size={18}/> Tâches</span><span className="tab locked-tab" title="Disponible après validation"><CalendarDays size={18}/> Gantt</span><span className="tab locked-tab" title="Disponible après validation"><Clock3 size={18}/> Activité</span></nav>
     <div className="task-layout"><section>
       <div className="mobile-task-list task-list">{typedTasks.map((task) => <article className="card task-card" key={task.id}><div className="task-top"><div><h3>{task.nom}</h3><span className={`badge ${status[task.statut].className}`} style={{marginTop:'.4rem'}}>{status[task.statut].label}</span></div>{task.est_critique && <span className="badge badge-critical">Critique</span>}</div><div className="task-details"><div><span className="metric-label">Durée</span><strong>{task.duree_jours} j</strong></div><div><span className="metric-label">Avancement</span><strong>{task.avancement}%</strong></div><div><span className="metric-label">Début</span><strong>{displayDate(task.date_debut_calculee)}</strong></div><div><span className="metric-label">Fin</span><strong>{displayDate(task.date_fin_calculee)}</strong></div><div><span className="metric-label">Prédécesseur</span><strong>{predecessor(task.id)}</strong></div><div><span className="metric-label">Responsable</span><strong>{task.profiles?.nom_complet || task.profiles?.email || 'Non assigné'}</strong></div></div>{canDelay(task) && <Link className="button button-secondary button-wide" href={delayHref(task.id)}>Signaler un retard</Link>}</article>)}</div>
