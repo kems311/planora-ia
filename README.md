@@ -2,7 +2,7 @@
 
 *Copilote de planning de chantier pour artisans et petites entreprises du bâtiment.*
 
-Demo video (80 s): https://youtu.be/vxVD9ka1xEA
+Demo video (1 min 10 s): https://youtu.be/vxVD9ka1xEA
 
 Planora-IA is a mobile-first web app for small construction businesses. When a delay is reported on site, the schedule is recomputed automatically with the critical path method, and the people concerned are notified with the old and new dates.
 
